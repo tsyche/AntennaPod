@@ -125,19 +125,19 @@ public class FeedPreferences implements Serializable {
     private final Set<String> tags = new HashSet<>();
 
     public FeedPreferences(long feedID, AutoDownloadSetting autoDownload, AutoDeleteAction autoDeleteAction,
-                           VolumeAdaptionSetting volumeAdaptionSetting, NewEpisodesAction newEpisodesAction,
-                           String username, String password) {
+            VolumeAdaptionSetting volumeAdaptionSetting, NewEpisodesAction newEpisodesAction,
+            String username, String password) {
         this(feedID, autoDownload, true, autoDeleteAction, volumeAdaptionSetting, username, password,
                 new FeedFilter(), SPEED_USE_GLOBAL, 0, 0, SkipSilence.GLOBAL,
                 false, newEpisodesAction, new HashSet<>());
     }
 
     public FeedPreferences(long feedID, AutoDownloadSetting autoDownload, boolean keepUpdated,
-                            AutoDeleteAction autoDeleteAction, VolumeAdaptionSetting volumeAdaptionSetting,
-                            String username, String password, @NonNull FeedFilter filter,
-                            float feedPlaybackSpeed, int feedSkipIntro, int feedSkipEnding, SkipSilence feedSkipSilence,
-                            boolean showEpisodeNotification, NewEpisodesAction newEpisodesAction,
-                            Set<String> tags) {
+            AutoDeleteAction autoDeleteAction, VolumeAdaptionSetting volumeAdaptionSetting,
+            String username, String password, @NonNull FeedFilter filter,
+            float feedPlaybackSpeed, int feedSkipIntro, int feedSkipEnding, SkipSilence feedSkipSilence,
+            boolean showEpisodeNotification, NewEpisodesAction newEpisodesAction,
+            Set<String> tags) {
         this.feedID = feedID;
         this.autoDownload = autoDownload;
         this.keepUpdated = keepUpdated;
@@ -155,10 +155,41 @@ public class FeedPreferences implements Serializable {
         this.tags.addAll(tags);
     }
 
+    public enum EnqueueLocation {
+        GLOBAL(0), BACK(1), FRONT(2), AFTER_CURRENTLY_PLAYING(3), RANDOM(4);
+
+        public final int code;
+
+        EnqueueLocation(int code) {
+            this.code = code;
+        }
+
+        public static EnqueueLocation fromCode(int code) {
+            for (EnqueueLocation l : values()) {
+                if (l.code == code)
+                    return l;
+            }
+            return GLOBAL;
+        }
+    }
+
+    private EnqueueLocation enqueueLocation = EnqueueLocation.GLOBAL;
+
+    public EnqueueLocation getEnqueueLocation() {
+        return enqueueLocation;
+    }
+
+    public void setEnqueueLocation(EnqueueLocation loc) {
+        if (loc == null)
+            loc = EnqueueLocation.GLOBAL;
+        this.enqueueLocation = loc;
+    }
+
     /**
      * @return the filter for this feed
      */
-    @NonNull public FeedFilter getFilter() {
+    @NonNull
+    public FeedFilter getFilter() {
         return filter;
     }
 
@@ -167,7 +198,8 @@ public class FeedPreferences implements Serializable {
     }
 
     /**
-     * @return true if this feed should be refreshed when everything else is being refreshed
+     * @return true if this feed should be refreshed when everything else is being
+     *         refreshed
      *         if false the feed should only be refreshed if requested directly.
      */
     public boolean getKeepUpdated() {
@@ -179,7 +211,8 @@ public class FeedPreferences implements Serializable {
     }
 
     /**
-     * Update this FeedPreferences object from another one. The feedID, autoDownload and AutoDeleteAction attributes
+     * Update this FeedPreferences object from another one. The feedID, autoDownload
+     * and AutoDeleteAction attributes
      * are excluded from the update.
      */
     public void updateFromOther(FeedPreferences other) {
@@ -198,9 +231,12 @@ public class FeedPreferences implements Serializable {
     }
 
     /**
-     * This function returns the calculated auto-download state for the given FeedPreference.
-     * By supplying the global default, the returned value will present the actionable state of the
+     * This function returns the calculated auto-download state for the given
+     * FeedPreference.
+     * By supplying the global default, the returned value will present the
+     * actionable state of the
      * download-state choosen by the user. No further checks need to be made.
+     * 
      * @param globalDefault Global Setting for automatic downloading of items.
      * @return whether this item should be downloaded
      */
@@ -312,6 +348,7 @@ public class FeedPreferences implements Serializable {
 
     /**
      * getter for preference if notifications should be display for new episodes.
+     * 
      * @return true for displaying notifications
      */
     public boolean getShowEpisodeNotification() {

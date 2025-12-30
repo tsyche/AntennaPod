@@ -32,6 +32,7 @@ public class FeedPreferencesCursor extends CursorWrapper {
     private final int indexAutoSkipEnding;
     private final int indexEpisodeNotification;
     private final int indexNewEpisodesAction;
+    private final int indexEnqueueLocation;
     private final int indexTags;
 
     public FeedPreferencesCursor(Cursor cursor) {
@@ -52,6 +53,8 @@ public class FeedPreferencesCursor extends CursorWrapper {
         indexAutoSkipEnding = cursor.getColumnIndexOrThrow(PodDBAdapter.KEY_FEED_SKIP_ENDING);
         indexEpisodeNotification = cursor.getColumnIndexOrThrow(PodDBAdapter.KEY_EPISODE_NOTIFICATION);
         indexNewEpisodesAction = cursor.getColumnIndexOrThrow(PodDBAdapter.KEY_NEW_EPISODES_ACTION);
+        // enqueue_location may not be present in older DB schemas used in tests
+        indexEnqueueLocation = cursor.getColumnIndex(PodDBAdapter.KEY_FEED_ENQUEUE_LOCATION);
         indexTags = cursor.getColumnIndexOrThrow(PodDBAdapter.KEY_FEED_TAGS);
     }
 
@@ -64,7 +67,7 @@ public class FeedPreferencesCursor extends CursorWrapper {
         if (TextUtils.isEmpty(tagsString)) {
             tagsString = FeedPreferences.TAG_ROOT;
         }
-        return new FeedPreferences(
+        FeedPreferences prefs = new FeedPreferences(
                 getLong(indexId),
                 FeedPreferences.AutoDownloadSetting.fromInteger(getInt(indexAutoDownload)),
                 getInt(indexAutoRefresh) > 0,
@@ -81,5 +84,11 @@ public class FeedPreferencesCursor extends CursorWrapper {
                 getInt(indexEpisodeNotification) > 0,
                 FeedPreferences.NewEpisodesAction.fromCode(getInt(indexNewEpisodesAction)),
                 new HashSet<>(Arrays.asList(tagsString.split(FeedPreferences.TAG_SEPARATOR))));
+        try {
+            prefs.setEnqueueLocation(FeedPreferences.EnqueueLocation.fromCode(getInt(indexEnqueueLocation)));
+        } catch (Exception ignored) {
+            // ignore if column not present
+        }
+        return prefs;
     }
 }

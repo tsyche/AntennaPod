@@ -4,13 +4,11 @@ plugins {
 apply from: "../../common.gradle"
 
 android {
-    namespace "de.danoeh.antennapod.ui.common"
-
+    namespace = "de.danoeh.antennapod.ui.common"
     lint {
-        disable 'VectorPath'
+        disable 'VectorPath', 'QueryPermissionsNeeded'
     }
 }
-
 dependencies {
     implementation project(":storage:preferences")
     implementation project(":ui:i18n")

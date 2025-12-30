@@ -5,7 +5,11 @@ apply from: "../../common.gradle"
 apply from: "../../playFlavor.gradle"
 
 android {
-    namespace "de.danoeh.antennapod.playback.service"
+    namespace = "de.danoeh.antennapod.playback.service"
+    lint {
+        // Use a baseline to avoid failing the build on legacy issues.
+        baseline = file("lint-baseline.xml")
+    }
 }
 
 dependencies {

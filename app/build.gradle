@@ -6,7 +6,7 @@ apply from: "../common.gradle"
 apply from: "../playFlavor.gradle"
 
 android {
-    namespace "de.danoeh.antennapod"
+    namespace = "de.danoeh.antennapod"
 
     defaultConfig {
         // Version code schema:
@@ -42,7 +42,12 @@ android {
             resValue "string", "provider_authority", "de.danoeh.antennapod.provider"
             minifyEnabled true
             shrinkResources true
-            signingConfig signingConfigs.releaseConfig
+            def releaseStorePath = project.getProperties().getOrDefault("releaseStoreFile", "keystore")
+            if (file(releaseStorePath).exists()) {
+                signingConfig signingConfigs.releaseConfig
+            } else {
+                println "Warning: release keystore not found at ${releaseStorePath}; skipping signing for release build."
+            }
         }
     }
 
