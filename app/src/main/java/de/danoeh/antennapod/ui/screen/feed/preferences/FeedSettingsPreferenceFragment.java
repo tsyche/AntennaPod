@@ -1,5 +1,6 @@
 package de.danoeh.antennapod.ui.screen.feed.preferences;
 
+import android.content.res.Resources;
 import android.Manifest;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -14,6 +15,7 @@ import android.widget.Toast;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.core.content.ContextCompat;
+import androidx.collection.ArrayMap;
 import androidx.preference.ListPreference;
 import androidx.preference.Preference;
 import androidx.preference.PreferenceFragmentCompat;
@@ -44,6 +46,7 @@ import org.greenrobot.eventbus.EventBus;
 
 import java.util.Collections;
 import java.util.Locale;
+import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
@@ -229,12 +232,24 @@ public class FeedSettingsPreferenceFragment extends PreferenceFragmentCompat {
             FeedPreferences.EnqueueLocation loc = feedPreferences.getEnqueueLocation();
             // Map enum to value string: use the code as stored in DB
             enqueueLocationPref.setValue(String.valueOf(loc.code));
+
+            // Create mapping from enum values to user-friendly strings
+            final Resources res = requireActivity().getResources();
+            final Map<String, String> options = new ArrayMap<>();
+            {
+                String[] keys = res.getStringArray(R.array.enqueue_location_values);
+                String[] values = res.getStringArray(R.array.enqueue_location_options);
+                for (int i = 0; i < keys.length; i++) {
+                    options.put(keys[i], values[i]);
+                }
+            }
+
             enqueueLocationPref.setOnPreferenceChangeListener((preference, newValue) -> {
-                int code = Integer.parseInt((String) newValue);
-                feedPreferences.setEnqueueLocation(FeedPreferences.EnqueueLocation.fromCode(code));
+                FeedPreferences.EnqueueLocation location = FeedPreferences.EnqueueLocation.valueOf((String) newValue);
+                feedPreferences.setEnqueueLocation(location);
                 DBWriter.setFeedPreferences(feedPreferences);
-                // update summary to reflect selection
-                enqueueLocationPref.setSummary(getString(R.string.global_default));
+                // update summary to reflect selection with user-friendly text
+                enqueueLocationPref.setSummary(options.get((String) newValue));
                 return false;
             });
         }
