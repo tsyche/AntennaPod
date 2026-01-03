@@ -25,17 +25,20 @@ public class ItemEnqueuePositionCalculator {
     }
 
     /**
-     * Determine the position (0-based) that the item(s) should be inserted to the named queue.
+     * Determine the position (0-based) that the item(s) should be inserted to the
+     * named queue.
      *
-     * @param curQueue           the queue to which the item is to be inserted
-     * @param currentPlaying     the currently playing media
+     * @param curQueue       the queue to which the item is to be inserted
+     * @param currentPlaying the currently playing media
      */
     public int calcPosition(@NonNull List<FeedItem> curQueue, @Nullable Playable currentPlaying) {
         switch (enqueueLocation) {
+            case GLOBAL:
             case BACK:
                 return curQueue.size();
             case FRONT:
-                // Return not necessarily 0, so that when a list of items are downloaded and enqueued
+                // Return not necessarily 0, so that when a list of items are downloaded and
+                // enqueued
                 // in succession of calls (e.g., users manually tapping download one by one),
                 // the items enqueued are kept the same order.
                 // Simply returning 0 will reverse the order.
@@ -75,7 +78,7 @@ public class ItemEnqueuePositionCalculator {
     }
 
     private static int getCurrentlyPlayingPosition(@NonNull List<FeedItem> curQueue,
-                                                   @Nullable Playable currentPlaying) {
+            @Nullable Playable currentPlaying) {
         if (!(currentPlaying instanceof FeedMedia)) {
             return -1;
         }

@@ -54,7 +54,7 @@ public class PodDBAdapter {
 
     private static final String TAG = "PodDBAdapter";
     public static final String DATABASE_NAME = "Antennapod.db";
-    public static final int VERSION = 3110000;
+    public static final int VERSION = 3110001;
 
     /**
      * Maximum number of arguments for IN-operator.
@@ -338,7 +338,8 @@ public class PodDBAdapter {
             + TABLE_NAME_FEEDS + "." + KEY_FEED_SKIP_ENDING + ", "
             + TABLE_NAME_FEEDS + "." + KEY_EPISODE_NOTIFICATION + ", "
             + TABLE_NAME_FEEDS + "." + KEY_STATE + ", "
-            + TABLE_NAME_FEEDS + "." + KEY_NEW_EPISODES_ACTION;
+            + TABLE_NAME_FEEDS + "." + KEY_NEW_EPISODES_ACTION + ", "
+            + TABLE_NAME_FEEDS + "." + KEY_FEED_ENQUEUE_LOCATION;
 
     private static final String JOIN_FEED_ITEM_AND_MEDIA = " LEFT JOIN " + TABLE_NAME_FEED_MEDIA
             + " ON " + TABLE_NAME_FEED_ITEMS + "." + KEY_ID + "=" + TABLE_NAME_FEED_MEDIA + "." + KEY_FEEDITEM + " ";

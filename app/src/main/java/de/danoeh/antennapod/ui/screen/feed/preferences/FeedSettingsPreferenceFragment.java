@@ -2,19 +2,21 @@ package de.danoeh.antennapod.ui.screen.feed.preferences;
 
 import android.content.res.Resources;
 import android.Manifest;
+import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.media.MediaMetadataRetriever;
 import android.net.Uri;
-import android.os.Build;
 import android.os.Bundle;
+import android.os.Build;
 import android.provider.Settings;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.ViewGroup;
+import android.webkit.MimeTypeMap;
 import android.widget.Toast;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
-import androidx.core.content.ContextCompat;
 import androidx.collection.ArrayMap;
 import androidx.preference.ListPreference;
 import androidx.preference.Preference;
@@ -33,6 +35,7 @@ import de.danoeh.antennapod.model.feed.FeedPreferences;
 import de.danoeh.antennapod.model.feed.VolumeAdaptionSetting;
 import de.danoeh.antennapod.net.download.serviceinterface.FeedUpdateManager;
 import de.danoeh.antennapod.storage.database.DBReader;
+import de.danoeh.antennapod.storage.database.PodDBAdapter;
 import de.danoeh.antennapod.storage.database.DBWriter;
 import de.danoeh.antennapod.storage.preferences.UserPreferences;
 import de.danoeh.antennapod.ui.preferences.screen.synchronization.AuthenticationDialog;
@@ -230,8 +233,8 @@ public class FeedSettingsPreferenceFragment extends PreferenceFragmentCompat {
         if (enqueueLocationPref != null) {
             // initialize
             FeedPreferences.EnqueueLocation loc = feedPreferences.getEnqueueLocation();
-            // Map enum to value string: use the code as stored in DB
-            enqueueLocationPref.setValue(String.valueOf(loc.code));
+            // Map enum to value string: use the enum name as stored in preferences
+            enqueueLocationPref.setValue(loc.name());
 
             // Create mapping from enum values to user-friendly strings
             final Resources res = requireActivity().getResources();
@@ -243,6 +246,9 @@ public class FeedSettingsPreferenceFragment extends PreferenceFragmentCompat {
                     options.put(keys[i], values[i]);
                 }
             }
+
+            // Set initial summary
+            enqueueLocationPref.setSummary(options.get(loc.name()));
 
             enqueueLocationPref.setOnPreferenceChangeListener((preference, newValue) -> {
                 FeedPreferences.EnqueueLocation location = FeedPreferences.EnqueueLocation.valueOf((String) newValue);
@@ -279,7 +285,7 @@ public class FeedSettingsPreferenceFragment extends PreferenceFragmentCompat {
         notificationPreference.setChecked(feedPreferences.getShowEpisodeNotification());
         notificationPreference.setOnPreferenceChangeListener((preference, newValue) -> {
             boolean checked = Boolean.TRUE.equals(newValue);
-            if (checked && Build.VERSION.SDK_INT >= 33 && ContextCompat.checkSelfPermission(getContext(),
+            if (checked && Build.VERSION.SDK_INT >= 33 && requireContext().checkSelfPermission(
                     Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
                 enableNotificationsRequestPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS);
                 return false;

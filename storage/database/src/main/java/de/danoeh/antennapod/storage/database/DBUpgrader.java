@@ -13,6 +13,24 @@ import de.danoeh.antennapod.model.feed.FeedPreferences;
 import static de.danoeh.antennapod.model.feed.FeedPreferences.SPEED_USE_GLOBAL;
 
 class DBUpgrader {
+        private static boolean columnExists(SQLiteDatabase db, String table, String column) {
+                Cursor cursor = null;
+                try {
+                        cursor = db.rawQuery("PRAGMA table_info(" + table + ")", null);
+                        int nameIndex = cursor.getColumnIndex("name");
+                        while (cursor.moveToNext()) {
+                                if (column.equals(cursor.getString(nameIndex))) {
+                                        return true;
+                                }
+                        }
+                        return false;
+                } finally {
+                        if (cursor != null) {
+                                cursor.close();
+                        }
+                }
+        }
+
         /**
          * Upgrades the given database to a new schema version
          */
@@ -371,9 +389,12 @@ class DBUpgrader {
                                         + " ADD COLUMN " + PodDBAdapter.KEY_NEW_EPISODES_ACTION + " INTEGER DEFAULT 0");
                 }
                 if (oldVersion < 3110001) {
-                        db.execSQL("ALTER TABLE " + PodDBAdapter.TABLE_NAME_FEEDS
-                                        + " ADD COLUMN " + PodDBAdapter.KEY_FEED_ENQUEUE_LOCATION
-                                        + " INTEGER DEFAULT 0");
+                        if (!columnExists(db, PodDBAdapter.TABLE_NAME_FEEDS,
+                                        PodDBAdapter.KEY_FEED_ENQUEUE_LOCATION)) {
+                                db.execSQL("ALTER TABLE " + PodDBAdapter.TABLE_NAME_FEEDS
+                                                + " ADD COLUMN " + PodDBAdapter.KEY_FEED_ENQUEUE_LOCATION
+                                                + " INTEGER DEFAULT 0");
+                        }
                 }
                 if (oldVersion < 3040000) {
                         db.execSQL("ALTER TABLE " + PodDBAdapter.TABLE_NAME_FEEDS
