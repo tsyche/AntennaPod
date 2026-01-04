@@ -36,6 +36,8 @@ import java.util.concurrent.TimeUnit;
 import de.danoeh.antennapod.model.feed.Feed;
 import de.danoeh.antennapod.model.feed.FeedItem;
 import de.danoeh.antennapod.model.feed.FeedMedia;
+import de.danoeh.antennapod.net.download.service.episode.autodownload.AutoDownloadManagerImpl;
+import de.danoeh.antennapod.net.download.serviceinterface.AutoDownloadManager;
 import de.danoeh.antennapod.storage.preferences.PlaybackPreferences;
 import de.danoeh.antennapod.storage.preferences.UserPreferences;
 
@@ -55,7 +57,7 @@ public class DbWriterTest {
     private static final String TAG = "DBWriterTest";
     private static final String TEST_FOLDER = "testDBWriter";
     private static final long TIMEOUT = 5L;
-    
+
     private Context context;
 
     @Before
@@ -65,6 +67,7 @@ public class DbWriterTest {
         PlaybackPreferences.init(context);
         DownloadServiceInterface.setImpl(new DownloadServiceInterfaceStub());
         SynchronizationQueue.setInstance(new SynchronizationQueueStub());
+        AutoDownloadManager.setInstance(new AutoDownloadManagerImpl());
 
         // create new database
         PodDBAdapter.init(context);
@@ -86,7 +89,7 @@ public class DbWriterTest {
         File testDir = context.getExternalFilesDir(TEST_FOLDER);
         assertNotNull(testDir);
         for (File f : testDir.listFiles()) {
-            //noinspection ResultOfMethodCallIgnored
+            // noinspection ResultOfMethodCallIgnored
             f.delete();
         }
     }
@@ -657,7 +660,7 @@ public class DbWriterTest {
             for (int i = 0; i < queue.getCount(); i++) {
                 assertTrue(queue.moveToPosition(i));
                 final long queueID = queue.getLong(0);
-                assertTrue(queueID != item.getId());  // removed item is no longer in queue
+                assertTrue(queueID != item.getId()); // removed item is no longer in queue
                 boolean idFound = false;
                 for (FeedItem other : feed.getItems()) { // items that were not removed are still in the queue
                     idFound = idFound | (other.getId() == queueID);

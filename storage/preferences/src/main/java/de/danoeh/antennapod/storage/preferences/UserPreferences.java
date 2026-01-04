@@ -204,7 +204,7 @@ public abstract class UserPreferences {
         Arrays.sort(sectionTags, (String a, String b) -> Integer.signum(
                 indexOfOrMaxValue(itemOrderTags, a) - indexOfOrMaxValue(itemOrderTags, b)));
         List<String> finalItemTags = new ArrayList<>();
-        for (String sectionTag: sectionTags) {
+        for (String sectionTag : sectionTags) {
             if (hiddenItemTags.contains(sectionTag)) {
                 continue;
             }
@@ -226,7 +226,8 @@ public abstract class UserPreferences {
     public static List<Integer> getFullNotificationButtons() {
         String[] buttons = TextUtils.split(
                 prefs.getString(PREF_FULL_NOTIFICATION_BUTTONS,
-                NOTIFICATION_BUTTON_SKIP + "," + NOTIFICATION_BUTTON_PLAYBACK_SPEED), ",");
+                        NOTIFICATION_BUTTON_SKIP + "," + NOTIFICATION_BUTTON_PLAYBACK_SPEED),
+                ",");
 
         List<Integer> notificationButtons = new ArrayList<>();
         for (String button : buttons) {
@@ -236,13 +237,15 @@ public abstract class UserPreferences {
     }
 
     /**
-     * Helper function to return whether the specified button should be shown on full
+     * Helper function to return whether the specified button should be shown on
+     * full
      * notifications.
      *
-     * @param buttonId Either NOTIFICATION_BUTTON_REWIND, NOTIFICATION_BUTTON_FAST_FORWARD,
+     * @param buttonId Either NOTIFICATION_BUTTON_REWIND,
+     *                 NOTIFICATION_BUTTON_FAST_FORWARD,
      *                 NOTIFICATION_BUTTON_SKIP, NOTIFICATION_BUTTON_PLAYBACK_SPEED
      *                 or NOTIFICATION_BUTTON_NEXT_CHAPTER.
-     * @return {@code true} if button should be shown, {@code false}  otherwise
+     * @return {@code true} if button should be shown, {@code false} otherwise
      */
     private static boolean showButtonOnFullNotification(int buttonId) {
         return getFullNotificationButtons().contains(buttonId);
@@ -283,7 +286,8 @@ public abstract class UserPreferences {
     }
 
     /**
-     * @return {@code true} if episodes should use their own cover, {@code false}  otherwise
+     * @return {@code true} if episodes should use their own cover, {@code false}
+     *         otherwise
      */
     public static boolean getUseEpisodeCoverSetting() {
         return prefs.getBoolean(PREF_USE_EPISODE_COVER, true);
@@ -297,8 +301,10 @@ public abstract class UserPreferences {
     }
 
     /**
-     * Sets the preference for whether we show the remain time, if not show the duration. This will
-     * send out events so the current playing screen, queue and the episode list would refresh
+     * Sets the preference for whether we show the remain time, if not show the
+     * duration. This will
+     * send out events so the current playing screen, queue and the episode list
+     * would refresh
      *
      * @return {@code true} if we should show remaining time or the duration
      */
@@ -318,7 +324,8 @@ public abstract class UserPreferences {
     /**
      * Returns notification priority.
      *
-     * @return NotificationCompat.PRIORITY_MAX or NotificationCompat.PRIORITY_DEFAULT
+     * @return NotificationCompat.PRIORITY_MAX or
+     *         NotificationCompat.PRIORITY_DEFAULT
      */
     public static int getNotifyPriority() {
         if (prefs.getBoolean(PREF_EXPANDED_NOTIFICATION, false)) {
@@ -331,7 +338,7 @@ public abstract class UserPreferences {
     /**
      * Returns true if notifications are persistent
      *
-     * @return {@code true} if notifications are persistent, {@code false}  otherwise
+     * @return {@code true} if notifications are persistent, {@code false} otherwise
      */
     public static boolean isPersistNotify() {
         return prefs.getBoolean(PREF_PERSISTENT_NOTIFICATION, true);
@@ -349,18 +356,18 @@ public abstract class UserPreferences {
     }
 
     public enum EnqueueLocation {
-        BACK, FRONT, AFTER_CURRENTLY_PLAYING, RANDOM
+        GLOBAL, BACK, FRONT, AFTER_CURRENTLY_PLAYING, RANDOM
     }
 
     @NonNull
     public static EnqueueLocation getEnqueueLocation() {
-        String valStr = prefs.getString(PREF_ENQUEUE_LOCATION, EnqueueLocation.BACK.name());
+        String valStr = prefs.getString(PREF_ENQUEUE_LOCATION, EnqueueLocation.GLOBAL.name());
         try {
             return EnqueueLocation.valueOf(valStr);
         } catch (Throwable t) {
             // should never happen but just in case
             Log.e(TAG, "getEnqueueLocation: invalid value '" + valStr + "' Use default.", t);
-            return EnqueueLocation.BACK;
+            return EnqueueLocation.GLOBAL;
         }
     }
 
@@ -391,7 +398,6 @@ public abstract class UserPreferences {
         return Integer.parseInt(prefs.getString(PREF_HARDWARE_PREVIOUS_BUTTON,
                 String.valueOf(KeyEvent.KEYCODE_MEDIA_REWIND)));
     }
-
 
     public static boolean isFollowQueue() {
         return prefs.getBoolean(PREF_FOLLOW_QUEUE, true);
@@ -688,7 +694,8 @@ public abstract class UserPreferences {
      *
      * @param type The name of the folder inside the data folder. May be null
      *             when accessing the root of the data folder.
-     * @return The data folder that has been requested or null if the folder could not be created.
+     * @return The data folder that has been requested or null if the folder could
+     *         not be created.
      */
     public static File getDataFolder(@Nullable String type) {
         File dataFolder = getTypeDir(prefs.getString(PREF_DATA_FOLDER, null), type);

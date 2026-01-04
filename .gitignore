@@ -34,6 +34,7 @@ gen-external-apklibs
 out
 #transifex downloads
 contributers.py
+.vscode/
 .history/
 
 # View hierarchy captures
@@ -46,3 +47,4 @@ libs
 gradle.properties
 *.keystore
 *.p12
+.tool-versions

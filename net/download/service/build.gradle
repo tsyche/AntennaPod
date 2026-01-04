@@ -7,6 +7,26 @@ apply from: "../../../playFlavor.gradle"
 
 android {
     namespace "de.danoeh.antennapod.net.download.service"
+    
+    testOptions {
+        unitTests {
+            all {
+                // Help Mockito agent attachment work reliably with Java 21
+                jvmArgs '-XX:+EnableDynamicAgentLoading'
+                jvmArgs '--add-opens=java.base/java.lang=ALL-UNNAMED'
+                jvmArgs '--add-opens=java.base/java.util=ALL-UNNAMED'
+                jvmArgs '--add-opens=java.base/java.lang.reflect=ALL-UNNAMED'
+                jvmArgs '--add-opens=java.base/java.nio=ALL-UNNAMED'
+                jvmArgs '--add-opens=java.base/sun.nio.ch=ALL-UNNAMED'
+                jvmArgs '--add-opens=java.instrument/java.lang.instrument=ALL-UNNAMED'
+                jvmArgs '--add-opens=java.base/jdk.internal.loader=ALL-UNNAMED'
+                jvmArgs '--add-opens=java.base/java.lang.invoke=ALL-UNNAMED'
+                systemProperty 'org.mockito.mockMaker', 'mock-maker-inline'
+                forkEvery = 0
+                maxParallelForks = 1
+            }
+        }
+    }
 }
 
 dependencies {
