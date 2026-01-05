@@ -11,6 +11,7 @@ import de.danoeh.antennapod.model.feed.FeedMedia;
 
 import java.util.Date;
 import java.util.List;
+import java.util.Objects;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
@@ -21,6 +22,7 @@ import org.apache.commons.lang3.builder.HashCodeBuilder;
  * Used for Casting and for previewing unsubscribed feeds.
  */
 public class RemoteMedia implements Playable {
+    private static final long serialVersionUID = 1L;
     public static final String TAG = "RemoteMedia";
 
     public static final int PLAYABLE_TYPE_REMOTE_MEDIA = 3;
@@ -37,15 +39,15 @@ public class RemoteMedia implements Playable {
     private final String mimeType;
     private final Date pubDate;
     private final String notes;
-    private List<Chapter> chapters;
+    private transient List<Chapter> chapters;
     private int duration;
     private int position;
     private long lastPlayedTimeStatistics;
 
     public RemoteMedia(String downloadUrl, String itemId, String feedUrl, String feedTitle,
-                       String episodeTitle, String episodeLink, String feedAuthor,
-                       String imageUrl, String feedLink, String mimeType, Date pubDate,
-                       String notes) {
+            String episodeTitle, String episodeLink, String feedAuthor,
+            String imageUrl, String feedLink, String mimeType, Date pubDate,
+            String notes) {
         this.downloadUrl = downloadUrl;
         this.itemIdentifier = itemId;
         this.feedUrl = feedUrl;
@@ -280,21 +282,21 @@ public class RemoteMedia implements Playable {
     public boolean equals(Object other) {
         if (other instanceof RemoteMedia) {
             RemoteMedia rm = (RemoteMedia) other;
-            return StringUtils.equals(downloadUrl, rm.downloadUrl)
-                    && StringUtils.equals(feedUrl, rm.feedUrl)
-                    && StringUtils.equals(itemIdentifier, rm.itemIdentifier);
+            return Objects.equals(downloadUrl, rm.downloadUrl)
+                    && Objects.equals(feedUrl, rm.feedUrl)
+                    && Objects.equals(itemIdentifier, rm.itemIdentifier);
         }
         if (other instanceof FeedMedia) {
             FeedMedia fm = (FeedMedia) other;
-            if (!StringUtils.equals(downloadUrl, fm.getStreamUrl())) {
+            if (!Objects.equals(downloadUrl, fm.getStreamUrl())) {
                 return false;
             }
             FeedItem fi = fm.getItem();
-            if (fi == null || !StringUtils.equals(itemIdentifier, fi.getItemIdentifier())) {
+            if (fi == null || !Objects.equals(itemIdentifier, fi.getItemIdentifier())) {
                 return false;
             }
             Feed feed = fi.getFeed();
-            return feed != null && StringUtils.equals(feedUrl, feed.getDownloadUrl());
+            return feed != null && Objects.equals(feedUrl, feed.getDownloadUrl());
         }
         return false;
     }

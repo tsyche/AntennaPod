@@ -11,6 +11,7 @@ import java.util.Set;
  * Contains preferences for a single feed.
  */
 public class FeedPreferences implements Serializable {
+    private static final long serialVersionUID = 1L;
 
     public static final float SPEED_USE_GLOBAL = -1;
     public static final String TAG_ROOT = "#root";
@@ -122,7 +123,7 @@ public class FeedPreferences implements Serializable {
     private int feedSkipEnding;
     private SkipSilence feedSkipSilence;
     private boolean showEpisodeNotification;
-    private final Set<String> tags = new HashSet<>();
+    private transient Set<String> tags = new HashSet<>();
 
     public FeedPreferences(long feedID, AutoDownloadSetting autoDownload, AutoDeleteAction autoDeleteAction,
             VolumeAdaptionSetting volumeAdaptionSetting, NewEpisodesAction newEpisodesAction,

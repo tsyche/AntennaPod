@@ -56,19 +56,19 @@ public class FeedFunding {
             funding.add(new FeedFunding(payLinks, ""));
             return funding;
         }
-        String [] list = payLinks.split(FeedFunding.FUNDING_ENTRIES_SEPARATOR);
+        String[] list = payLinks.split(FeedFunding.FUNDING_ENTRIES_SEPARATOR);
         if (list.length == 0) {
             return null;
         }
 
         for (String str : list) {
-            String [] linkContent = str.split(FeedFunding.FUNDING_TITLE_SEPARATOR);
+            String[] linkContent = str.split(FeedFunding.FUNDING_TITLE_SEPARATOR);
             if (StringUtils.isBlank(linkContent[0])) {
                 continue;
             }
             String url = linkContent[0];
             String title = "";
-            if (linkContent.length > 1 && ! StringUtils.isBlank(linkContent[1])) {
+            if (linkContent.length > 1 && !StringUtils.isBlank(linkContent[1])) {
                 title = linkContent[1];
             }
             funding.add(new FeedFunding(url, title));
@@ -85,7 +85,11 @@ public class FeedFunding {
             result.append(fund.url).append(FeedFunding.FUNDING_TITLE_SEPARATOR).append(fund.content);
             result.append(FeedFunding.FUNDING_ENTRIES_SEPARATOR);
         }
-        return StringUtils.removeEnd(result.toString(), FeedFunding.FUNDING_ENTRIES_SEPARATOR);
+        String resultStr = result.toString();
+        if (resultStr.endsWith(FeedFunding.FUNDING_ENTRIES_SEPARATOR)) {
+            return resultStr.substring(0, resultStr.length() - FeedFunding.FUNDING_ENTRIES_SEPARATOR.length());
+        }
+        return resultStr;
     }
 
 }

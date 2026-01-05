@@ -7,6 +7,7 @@ import java.util.Arrays;
 import java.util.List;
 
 public class FeedItemFilter implements Serializable {
+    private static final long serialVersionUID = 1L;
 
     private final String[] properties;
 
