@@ -12,7 +12,6 @@ import de.danoeh.antennapod.model.MediaMetadataRetrieverCompat;
 import de.danoeh.antennapod.model.playback.MediaType;
 import de.danoeh.antennapod.model.playback.Playable;
 import de.danoeh.antennapod.model.playback.RemoteMedia;
-import org.apache.commons.lang3.StringUtils;
 
 import java.io.File;
 import java.util.Date;
