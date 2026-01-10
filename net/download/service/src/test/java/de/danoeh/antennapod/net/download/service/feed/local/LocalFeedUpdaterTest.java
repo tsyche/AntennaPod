@@ -55,7 +55,6 @@ import static org.hamcrest.CoreMatchers.startsWith;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.empty;
 import static org.junit.Assert.assertEquals;
-import static org.mockito.ArgumentMatchers.any;
 import static org.robolectric.Shadows.shadowOf;
 
 /**
@@ -69,7 +68,8 @@ public class LocalFeedUpdaterTest {
      * The exact URL doesn't matter here as access to external storage is mocked
      * (seems not to be supported by Robolectric).
      */
-    private static final String FEED_URL = "content://com.android.externalstorage.documents/tree/primary%3ADownload%2Flocal-feed";
+    private static final String FEED_URL = "content://com.android.externalstorage.documents/tree/"
+            + "primary%3ADownload%2Flocal-feed";
     private static final String LOCAL_FEED_DIR1 = "src/test/assets/local-feed1";
     private static final String LOCAL_FEED_DIR2 = "src/test/assets/local-feed2";
 

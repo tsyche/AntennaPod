@@ -436,6 +436,7 @@ public class DBWriter {
                         }
                     }
                 } catch (Exception ignored) {
+                    // Ignore cleanup errors
                 }
 
                 ItemEnqueuePositionCalculator positionCalculator = new ItemEnqueuePositionCalculator(effectiveLocation);
