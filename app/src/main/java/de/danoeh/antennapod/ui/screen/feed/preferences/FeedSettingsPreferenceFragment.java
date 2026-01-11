@@ -78,7 +78,7 @@ public class FeedSettingsPreferenceFragment extends PreferenceFragmentCompat {
     }
 
     boolean notificationPermissionDenied = false;
-    private final ActivityResultLauncher<String> enableNotificationsRequestPermissionLauncher = registerForActivityResult(
+    private final ActivityResultLauncher<String> notificationLauncher = registerForActivityResult(
             new ActivityResultContracts.RequestPermission(), isGranted -> {
                 if (isGranted) {
                     SwitchPreferenceCompat pref = findPreference(PREF_NOTIFICATION);
@@ -283,7 +283,7 @@ public class FeedSettingsPreferenceFragment extends PreferenceFragmentCompat {
             boolean checked = Boolean.TRUE.equals(newValue);
             if (checked && Build.VERSION.SDK_INT >= 33 && requireContext().checkSelfPermission(
                     Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
-                enableNotificationsRequestPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS);
+                notificationLauncher.launch(Manifest.permission.POST_NOTIFICATIONS);
                 return false;
             }
             feedPreferences.setShowEpisodeNotification(checked);
