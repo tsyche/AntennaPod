@@ -13,7 +13,6 @@ import android.view.ViewGroup;
 import android.widget.Toast;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
-import androidx.core.content.ContextCompat;
 import androidx.preference.ListPreference;
 import androidx.preference.Preference;
 import androidx.preference.PreferenceFragmentCompat;
@@ -76,7 +75,7 @@ public class FeedSettingsPreferenceFragment extends PreferenceFragmentCompat {
     }
 
     boolean notificationPermissionDenied = false;
-    private final ActivityResultLauncher<String> enableNotificationsRequestPermissionLauncher = registerForActivityResult(
+    private final ActivityResultLauncher<String> enableNotifLauncher = registerForActivityResult(
             new ActivityResultContracts.RequestPermission(), isGranted -> {
                 if (isGranted) {
                     SwitchPreferenceCompat pref = findPreference(PREF_NOTIFICATION);
@@ -150,6 +149,52 @@ public class FeedSettingsPreferenceFragment extends PreferenceFragmentCompat {
     }
 
     private void setupPreferences() {
+        ListPreference enqueueLocationPref = findPreference(PREF_FEED_ENQUEUE_LOCATION);
+        if (enqueueLocationPref != null) {
+            FeedPreferences.EnqueueLocation loc = feedPreferences.getEnqueueLocation();
+
+            CharSequence[] entries = getResources().getStringArray(R.array.enqueue_location_options);
+            CharSequence[] entryValues = getResources().getStringArray(R.array.enqueue_location_values);
+            enqueueLocationPref.setEntries(entries);
+            enqueueLocationPref.setEntryValues(entryValues);
+
+            // Map enum to value string: use the enum name for UI
+            enqueueLocationPref.setValue(loc.name());
+            updateEnqueueLocationSummary(enqueueLocationPref, loc);
+
+            enqueueLocationPref.setOnPreferenceChangeListener((preference, newValue) -> {
+                Log.d(TAG, "=== ENQUEUE LOCATION CHANGE ===");
+                Log.d(TAG, "newValue: " + newValue);
+                Log.d(TAG, "current feedPreferences: " + feedPreferences.getEnqueueLocation());
+
+                if (newValue == null || !(newValue instanceof String)) {
+                    Log.w(TAG, "Invalid newValue, returning false");
+                    return false;
+                }
+
+                try {
+                    // Parse string value to enum, then get code for database
+                    String valueStr = (String) newValue;
+                    FeedPreferences.EnqueueLocation newLocation = FeedPreferences.EnqueueLocation.valueOf(valueStr);
+                    Log.d(TAG, "parsed newLocation: " + newLocation);
+
+                    feedPreferences.setEnqueueLocation(newLocation);
+                    Log.d(TAG, "set feedPreferences.enqueueLocation to: " + feedPreferences.getEnqueueLocation());
+
+                    DBWriter.setFeedPreferences(feedPreferences);
+                    Log.d(TAG, "called DBWriter.setFeedPreferences");
+
+                    updateEnqueueLocationSummary(enqueueLocationPref, newLocation);
+                    enqueueLocationPref.setValue(valueStr);
+                    Log.d(TAG, "updated preference UI value");
+                } catch (Exception e) {
+                    Log.e(TAG, "Error setting enqueue location", e);
+                }
+
+                return false; // Don't persist to SharedPreferences - DB is authoritative
+            });
+        }
+
         findPreference(PREF_AUTO_SKIP).setOnPreferenceClickListener(preference -> {
             new FeedPreferenceSkipDialog(getContext(),
                     feedPreferences.getFeedSkipIntro(), feedPreferences.getFeedSkipEnding()) {
@@ -223,21 +268,6 @@ public class FeedSettingsPreferenceFragment extends PreferenceFragmentCompat {
             return false;
         });
 
-        ListPreference enqueueLocationPref = findPreference(PREF_FEED_ENQUEUE_LOCATION);
-        if (enqueueLocationPref != null) {
-            // initialize
-            FeedPreferences.EnqueueLocation loc = feedPreferences.getEnqueueLocation();
-            // Map enum to value string: use the code as stored in DB
-            enqueueLocationPref.setValue(String.valueOf(loc.code));
-            enqueueLocationPref.setOnPreferenceChangeListener((preference, newValue) -> {
-                int code = Integer.parseInt((String) newValue);
-                feedPreferences.setEnqueueLocation(FeedPreferences.EnqueueLocation.fromCode(code));
-                DBWriter.setFeedPreferences(feedPreferences);
-                // update summary to reflect selection
-                enqueueLocationPref.setSummary(getString(R.string.global_default));
-                return false;
-            });
-        }
         SwitchPreferenceCompat keepUpdated = findPreference("keepUpdated");
         keepUpdated.setChecked(feedPreferences.getKeepUpdated());
         keepUpdated.setOnPreferenceChangeListener((preference, newValue) -> {
@@ -264,9 +294,9 @@ public class FeedSettingsPreferenceFragment extends PreferenceFragmentCompat {
         notificationPreference.setChecked(feedPreferences.getShowEpisodeNotification());
         notificationPreference.setOnPreferenceChangeListener((preference, newValue) -> {
             boolean checked = Boolean.TRUE.equals(newValue);
-            if (checked && Build.VERSION.SDK_INT >= 33 && ContextCompat.checkSelfPermission(getContext(),
+            if (checked && Build.VERSION.SDK_INT >= 33 && requireContext().checkSelfPermission(
                     Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
-                enableNotificationsRequestPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS);
+                enableNotifLauncher.launch(Manifest.permission.POST_NOTIFICATIONS);
                 return false;
             }
             feedPreferences.setShowEpisodeNotification(checked);
@@ -339,6 +369,22 @@ public class FeedSettingsPreferenceFragment extends PreferenceFragmentCompat {
         };
         autoDownloadPreference.setSummary(summary);
         autoDownloadPreference.setValue("" + feedPreferences.getAutoDownload().code);
+    }
+
+    private void updateEnqueueLocationSummary(ListPreference preference, FeedPreferences.EnqueueLocation location) {
+        CharSequence[] entries = preference.getEntries();
+        CharSequence[] values = preference.getEntryValues();
+
+        // Find the index of the enum name in values array
+        for (int i = 0; i < values.length; i++) {
+            if (values[i].toString().equals(location.name())) {
+                preference.setSummary(entries[i].toString());
+                return;
+            }
+        }
+
+        // Fallback - shouldn't happen
+        preference.setSummary(location.name().replace("_", " "));
     }
 
     private boolean showPlaybackSpeedDialog(Preference preference) {

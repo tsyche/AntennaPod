@@ -33,6 +33,7 @@ import java.util.Set;
 
 import de.danoeh.antennapod.model.feed.Chapter;
 import de.danoeh.antennapod.model.feed.Feed;
+import de.danoeh.antennapod.model.feed.VolumeAdaptionSetting;
 import de.danoeh.antennapod.model.feed.FeedItem;
 import de.danoeh.antennapod.model.feed.FeedItemFilter;
 import de.danoeh.antennapod.model.feed.FeedMedia;
@@ -54,7 +55,7 @@ public class PodDBAdapter {
 
     private static final String TAG = "PodDBAdapter";
     public static final String DATABASE_NAME = "Antennapod.db";
-    public static final int VERSION = 3110000;
+    public static final int VERSION = 3120001;
 
     /**
      * Maximum number of arguments for IN-operator.
@@ -327,6 +328,7 @@ public class PodDBAdapter {
             + TABLE_NAME_FEEDS + "." + KEY_HIDE + ", "
             + TABLE_NAME_FEEDS + "." + KEY_SORT_ORDER + ", "
             + TABLE_NAME_FEEDS + "." + KEY_AUTO_DELETE_ACTION + ", "
+            + TABLE_NAME_FEEDS + "." + KEY_FEED_ENQUEUE_LOCATION + ", "
             + TABLE_NAME_FEEDS + "." + KEY_FEED_VOLUME_ADAPTION + ", "
             + TABLE_NAME_FEEDS + "." + KEY_INCLUDE_FILTER + ", "
             + TABLE_NAME_FEEDS + "." + KEY_EXCLUDE_FILTER + ", "
@@ -515,7 +517,17 @@ public class PodDBAdapter {
         values.put(KEY_FEED_SKIP_ENDING, prefs.getFeedSkipEnding());
         values.put(KEY_EPISODE_NOTIFICATION, prefs.getShowEpisodeNotification());
         values.put(KEY_NEW_EPISODES_ACTION, prefs.getNewEpisodesAction().code);
-        values.put(KEY_FEED_ENQUEUE_LOCATION, prefs.getEnqueueLocation().code);
+
+        // Try to save enqueue location - if column doesn't exist, this will be ignored
+        try {
+            Log.d(TAG, "Attempting to save enqueue location: " + prefs.getEnqueueLocation() + " (code: "
+                    + prefs.getEnqueueLocation().getCode() + ")");
+            values.put(KEY_FEED_ENQUEUE_LOCATION, prefs.getEnqueueLocation().getCode());
+            Log.d(TAG, "Added enqueue location to ContentValues");
+        } catch (Exception e) {
+            Log.w(TAG, "Could not save enqueue location - column may not exist", e);
+        }
+
         db.update(TABLE_NAME_FEEDS, values, KEY_ID + "=?", new String[] { String.valueOf(prefs.getFeedID()) });
     }
 
@@ -618,6 +630,17 @@ public class PodDBAdapter {
             db.beginTransactionNonExclusive();
             for (Feed feed : feeds) {
                 setFeed(feed);
+                // Ensure feed has FeedPreferences object; create defaults if missing
+                if (feed.getPreferences() == null) {
+                    FeedPreferences defaultPrefs = new FeedPreferences(feed.getId(),
+                            FeedPreferences.AutoDownloadSetting.GLOBAL,
+                            FeedPreferences.AutoDeleteAction.GLOBAL,
+                            VolumeAdaptionSetting.OFF,
+                            FeedPreferences.NewEpisodesAction.GLOBAL,
+                            null, null);
+                    feed.setPreferences(defaultPrefs);
+                    setFeedPreferences(defaultPrefs);
+                }
                 if (feed.getItems() != null) {
                     for (FeedItem item : feed.getItems()) {
                         updateOrInsertFeedItem(item, false);

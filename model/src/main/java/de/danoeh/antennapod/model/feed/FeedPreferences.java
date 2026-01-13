@@ -105,6 +105,15 @@ public class FeedPreferences implements Serializable {
             }
             return DISABLED;
         }
+
+        public static AutoDownloadSetting fromCode(int code) {
+            for (AutoDownloadSetting setting : values()) {
+                if (code == setting.code) {
+                    return setting;
+                }
+            }
+            return DISABLED;
+        }
     }
 
     @NonNull
@@ -122,6 +131,7 @@ public class FeedPreferences implements Serializable {
     private int feedSkipEnding;
     private SkipSilence feedSkipSilence;
     private boolean showEpisodeNotification;
+    private EnqueueLocation enqueueLocation = EnqueueLocation.GLOBAL;
     private final Set<String> tags = new HashSet<>();
 
     public FeedPreferences(long feedID, AutoDownloadSetting autoDownload, AutoDeleteAction autoDeleteAction,
@@ -153,36 +163,6 @@ public class FeedPreferences implements Serializable {
         this.showEpisodeNotification = showEpisodeNotification;
         this.newEpisodesAction = newEpisodesAction;
         this.tags.addAll(tags);
-    }
-
-    public enum EnqueueLocation {
-        GLOBAL(0), BACK(1), FRONT(2), AFTER_CURRENTLY_PLAYING(3), RANDOM(4);
-
-        public final int code;
-
-        EnqueueLocation(int code) {
-            this.code = code;
-        }
-
-        public static EnqueueLocation fromCode(int code) {
-            for (EnqueueLocation l : values()) {
-                if (l.code == code)
-                    return l;
-            }
-            return GLOBAL;
-        }
-    }
-
-    private EnqueueLocation enqueueLocation = EnqueueLocation.GLOBAL;
-
-    public EnqueueLocation getEnqueueLocation() {
-        return enqueueLocation;
-    }
-
-    public void setEnqueueLocation(EnqueueLocation loc) {
-        if (loc == null)
-            loc = EnqueueLocation.GLOBAL;
-        this.enqueueLocation = loc;
     }
 
     /**
@@ -357,5 +337,39 @@ public class FeedPreferences implements Serializable {
 
     public void setShowEpisodeNotification(boolean showEpisodeNotification) {
         this.showEpisodeNotification = showEpisodeNotification;
+    }
+
+    public EnqueueLocation getEnqueueLocation() {
+        return enqueueLocation;
+    }
+
+    public void setEnqueueLocation(EnqueueLocation loc) {
+        if (loc == null) {
+            loc = EnqueueLocation.GLOBAL;
+        }
+        this.enqueueLocation = loc;
+    }
+
+    public enum EnqueueLocation {
+        GLOBAL(0), BACK(1), FRONT(2), AFTER_CURRENTLY_PLAYING(3), RANDOM(4);
+
+        public final int code;
+
+        EnqueueLocation(int code) {
+            this.code = code;
+        }
+
+        public static EnqueueLocation fromCode(int code) {
+            for (EnqueueLocation location : values()) {
+                if (location.code == code) {
+                    return location;
+                }
+            }
+            return GLOBAL;
+        }
+
+        public int getCode() {
+            return code;
+        }
     }
 }

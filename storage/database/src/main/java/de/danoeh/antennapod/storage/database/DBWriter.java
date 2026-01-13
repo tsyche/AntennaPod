@@ -404,7 +404,10 @@ public class DBWriter {
             LongList markAsUnplayedIds = new LongList();
             List<QueueEvent> events = new ArrayList<>();
             List<FeedItem> updatedItems = new ArrayList<>();
+            ItemEnqueuePositionCalculator positionCalculator = new ItemEnqueuePositionCalculator(
+                    FeedPreferences.EnqueueLocation.valueOf(UserPreferences.getEnqueueLocation().name()));
             Playable currentlyPlaying = DBReader.getFeedMedia(PlaybackPreferences.getCurrentlyPlayingFeedMediaId());
+            int insertPosition = positionCalculator.calcPosition(queue, currentlyPlaying);
             for (FeedItem item : items) {
                 if (itemListContains(queue, item.getId())) {
                     continue;
@@ -412,43 +415,46 @@ public class DBWriter {
                     continue;
                 }
                 // Determine effective enqueue location: per-feed overrides global setting.
-                UserPreferences.EnqueueLocation effectiveLocation = UserPreferences.getEnqueueLocation();
+                FeedPreferences.EnqueueLocation effectiveLocation = FeedPreferences.EnqueueLocation
+                        .valueOf(UserPreferences.getEnqueueLocation().name());
                 try {
                     if (item.getFeed() != null && item.getFeed().getPreferences() != null) {
                         FeedPreferences.EnqueueLocation feedLoc = item.getFeed().getPreferences().getEnqueueLocation();
                         if (feedLoc != null && feedLoc != FeedPreferences.EnqueueLocation.GLOBAL) {
                             switch (feedLoc) {
                                 case BACK:
-                                    effectiveLocation = UserPreferences.EnqueueLocation.BACK;
+                                    effectiveLocation = FeedPreferences.EnqueueLocation.BACK;
                                     break;
                                 case FRONT:
-                                    effectiveLocation = UserPreferences.EnqueueLocation.FRONT;
+                                    effectiveLocation = FeedPreferences.EnqueueLocation.FRONT;
                                     break;
                                 case AFTER_CURRENTLY_PLAYING:
-                                    effectiveLocation = UserPreferences.EnqueueLocation.AFTER_CURRENTLY_PLAYING;
+                                    effectiveLocation = FeedPreferences.EnqueueLocation.AFTER_CURRENTLY_PLAYING;
                                     break;
                                 case RANDOM:
-                                    effectiveLocation = UserPreferences.EnqueueLocation.RANDOM;
+                                    effectiveLocation = FeedPreferences.EnqueueLocation.RANDOM;
                                     break;
                                 default:
-                                    effectiveLocation = UserPreferences.getEnqueueLocation();
+                                    // Keep global setting
+                                    break;
                             }
                         }
                     }
-                } catch (Exception ignored) {
+                } catch (Exception e) {
+                    // Fall back to global setting
                 }
-
-                ItemEnqueuePositionCalculator positionCalculator = new ItemEnqueuePositionCalculator(effectiveLocation);
-                int insertPosition = positionCalculator.calcPosition(queue, currentlyPlaying);
-
-                queue.add(insertPosition, item);
-                events.add(QueueEvent.added(item, insertPosition));
+                ItemEnqueuePositionCalculator feedPositionCalculator = new ItemEnqueuePositionCalculator(
+                        effectiveLocation);
+                int feedInsertPosition = feedPositionCalculator.calcPosition(queue, currentlyPlaying);
+                queue.add(feedInsertPosition, item);
+                events.add(QueueEvent.added(item, feedInsertPosition));
 
                 item.addTag(FeedItem.TAG_QUEUE);
                 updatedItems.add(item);
                 if (item.isNew()) {
                     markAsUnplayedIds.add(item.getId());
                 }
+                insertPosition++;
             }
             if (!updatedItems.isEmpty()) {
                 applySortOrder(queue, events);
