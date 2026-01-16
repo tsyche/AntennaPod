@@ -34,7 +34,6 @@ gen-external-apklibs
 out
 #transifex downloads
 contributers.py
-.history/
 
 # View hierarchy captures
 captures

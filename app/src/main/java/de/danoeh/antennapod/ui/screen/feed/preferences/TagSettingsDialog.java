@@ -52,13 +52,8 @@ public class TagSettingsDialog extends DialogFragment {
     @NonNull
     @Override
     public Dialog onCreateDialog(@Nullable Bundle savedInstanceState) {
-        ArrayList<FeedPreferences> feedPreferencesList;
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
-            feedPreferencesList = (ArrayList<FeedPreferences>) getArguments().getSerializable(ARG_FEED_PREFERENCES,
-                    ArrayList.class);
-        } else {
-            feedPreferencesList = (ArrayList<FeedPreferences>) getArguments().getSerializable(ARG_FEED_PREFERENCES);
-        }
+        ArrayList<FeedPreferences> feedPreferencesList =
+                (ArrayList<FeedPreferences>) getArguments().getSerializable(ARG_FEED_PREFERENCES);
         Set<String> commonTags = new HashSet<>(feedPreferencesList.get(0).getTags());
 
         for (FeedPreferences preference : feedPreferencesList) {
@@ -85,11 +80,10 @@ public class TagSettingsDialog extends DialogFragment {
         viewBinding.tagsRecycler.setAdapter(adapter);
         viewBinding.rootFolderCheckbox.setChecked(commonTags.contains(FeedPreferences.TAG_ROOT));
         viewBinding.rootFolderCheckbox.setVisibility(UserPreferences.isBottomNavigationEnabled()
-                ? View.GONE
-                : View.VISIBLE);
+                ? View.GONE : View.VISIBLE);
 
-        viewBinding.newTagTextInput
-                .setEndIconOnClickListener(v -> addTag(viewBinding.newTagEditText.getText().toString().trim()));
+        viewBinding.newTagTextInput.setEndIconOnClickListener(v ->
+                addTag(viewBinding.newTagEditText.getText().toString().trim()));
 
         loadTags();
         viewBinding.newTagEditText.setThreshold(1);

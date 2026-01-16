@@ -5,11 +5,13 @@ apply from: "../../common.gradle"
 apply from: "../../playFlavor.gradle"
 
 android {
-    namespace = "de.danoeh.antennapod.storage.database"
+    namespace "de.danoeh.antennapod.storage.database"
+
     lint {
         disable "StaticFieldLeak"
     }
 }
+
 dependencies {
     implementation project(':event')
     implementation project(':model')

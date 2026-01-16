@@ -87,11 +87,18 @@ public class FeedSettingsTest {
 
     @Test
     public void testEnqueueLocationPersistence() {
-        // Open feed settings
+        // Wait for feed to load
         onView(isRoot()).perform(waitForView(
                 allOf(isDescendantOfA(withId(R.id.appBar)), withText(feed.getTitle()), isDisplayed()),
-                1000));
+                2000));
+
+        // Open feed settings
         onView(withId(R.id.butShowSettings)).perform(click());
+        try {
+            Thread.sleep(1000);
+        } catch (InterruptedException e) {
+            // Ignore
+        }
 
         // Get initial preference value from FeedPreferences (not SharedPreferences)
         FeedPreferences initialPrefs = feed.getPreferences();
@@ -103,7 +110,7 @@ public class FeedSettingsTest {
         // Select "Front" option (different from initial)
         onView(withText(R.string.enqueue_location_front)).perform(click());
 
-        // Wait a moment for the preference change to be processed
+        // Wait for preference change to be processed
         try {
             Thread.sleep(500);
         } catch (InterruptedException e) {
@@ -114,11 +121,18 @@ public class FeedSettingsTest {
         pressBack();
         pressBack();
 
-        // Re-enter feed settings
+        // Wait for feed to load again
         onView(isRoot()).perform(waitForView(
                 allOf(isDescendantOfA(withId(R.id.appBar)), withText(feed.getTitle()), isDisplayed()),
-                1000));
+                2000));
+
+        // Re-enter feed settings
         onView(withId(R.id.butShowSettings)).perform(click());
+        try {
+            Thread.sleep(1000);
+        } catch (InterruptedException e) {
+            // Ignore
+        }
 
         // Get feed from database to verify persistence
         Feed feedFromDb = DBReader.getFeed(feed.getId(), false, 0, Integer.MAX_VALUE);

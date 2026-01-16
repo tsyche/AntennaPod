@@ -4,12 +4,11 @@ plugins {
 apply from: "../../common.gradle"
 
 android {
-    namespace = "de.danoeh.antennapod.ui.notifications"
+    namespace "de.danoeh.antennapod.ui.notifications"
+
     defaultConfig {
-        vectorDrawables {
-            useSupportLibrary false
-            generatedDensities = ["xhdpi"]
-        }
+        vectorDrawables.useSupportLibrary false
+        vectorDrawables.generatedDensities = ["xhdpi"]
     }
 }
 

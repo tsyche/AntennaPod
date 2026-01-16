@@ -70,14 +70,14 @@ public class PlaybackPreferencesFragment extends AnimatedPreferenceFragment {
         }
 
         ListPreference pref = requirePreference(UserPreferences.PREF_ENQUEUE_LOCATION);
-        pref.setSummary(options.get(pref.getValue()));
+        pref.setSummary(res.getString(R.string.pref_enqueue_location_sum, options.get(pref.getValue())));
 
         pref.setOnPreferenceChangeListener((preference, newValue) -> {
             if (!(newValue instanceof String)) {
                 return false;
             }
             String newValStr = (String) newValue;
-            pref.setSummary(options.get(newValStr));
+            pref.setSummary(res.getString(R.string.pref_enqueue_location_sum, options.get(newValStr)));
             return true;
         });
     }

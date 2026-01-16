@@ -185,7 +185,7 @@ public class FeedSettingsPreferenceFragment extends PreferenceFragmentCompat {
                     Log.d(TAG, "called DBWriter.setFeedPreferences");
 
                     updateEnqueueLocationSummary(enqueueLocationPref, newLocation);
-                    enqueueLocationPref.setValue(valueStr);
+                    // setValue() not needed - preference already shows correct value
                     Log.d(TAG, "updated preference UI value");
                 } catch (Exception e) {
                     Log.e(TAG, "Error setting enqueue location", e);
