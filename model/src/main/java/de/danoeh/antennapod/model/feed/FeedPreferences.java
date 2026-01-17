@@ -10,6 +10,7 @@ import java.util.Set;
 /**
  * Contains preferences for a single feed.
  */
+@SuppressWarnings({ "serial", "unused" })
 public class FeedPreferences implements Serializable {
 
     public static final float SPEED_USE_GLOBAL = -1;
