@@ -32,8 +32,10 @@ import de.danoeh.antennapod.storage.database.mapper.FeedItemCursor;
 
 /**
  * Provides methods for reading data from the AntennaPod database.
- * In general, all database calls in DBReader-methods are executed on the caller's thread.
- * This means that the caller should make sure that DBReader-methods are not executed on the GUI-thread.
+ * In general, all database calls in DBReader-methods are executed on the
+ * caller's thread.
+ * This means that the caller should make sure that DBReader-methods are not
+ * executed on the GUI-thread.
  */
 public final class DBReader {
 
@@ -44,7 +46,6 @@ public final class DBReader {
      */
     private static final int DOWNLOAD_LOG_SIZE = 200;
 
-
     private DBReader() {
     }
 
@@ -52,8 +53,9 @@ public final class DBReader {
      * Returns a list of Feeds, sorted alphabetically by their title.
      *
      * @return A list of Feeds, sorted alphabetically by their title.
-     *      A Feed-object of the returned list does NOT have its list of FeedItems yet.
-     *      The FeedItem-list can be loaded separately with getFeedItemList().
+     *         A Feed-object of the returned list does NOT have its list of
+     *         FeedItems yet.
+     *         The FeedItem-list can be loaded separately with getFeedItemList().
      */
     @NonNull
     public static List<Feed> getFeedList() {
@@ -105,22 +107,50 @@ public final class DBReader {
     }
 
     private static void loadTagsOfFeedItemList(List<FeedItem> items) {
-        LongList favoriteIds = getFavoriteIDList();
-        LongList queueIds = getQueueIDList();
+        PodDBAdapter adapter = PodDBAdapter.getInstance();
+        adapter.open();
+        try {
+            LongList favoriteIds = getFavoriteIDListInternal(adapter);
+            LongList queueIds = getQueueIDListInternal(adapter);
 
-        for (FeedItem item : items) {
-            if (favoriteIds.contains(item.getId())) {
-                item.addTag(FeedItem.TAG_FAVORITE);
+            for (FeedItem item : items) {
+                if (favoriteIds.contains(item.getId())) {
+                    item.addTag(FeedItem.TAG_FAVORITE);
+                }
+                if (queueIds.contains(item.getId())) {
+                    item.addTag(FeedItem.TAG_QUEUE);
+                }
             }
-            if (queueIds.contains(item.getId())) {
-                item.addTag(FeedItem.TAG_QUEUE);
+        } finally {
+            adapter.close();
+        }
+    }
+
+    private static LongList getFavoriteIDListInternal(PodDBAdapter adapter) {
+        try (Cursor cursor = adapter.getFavoritesIdsCursor()) {
+            LongList favoriteIDs = new LongList(cursor.getCount());
+            while (cursor.moveToNext()) {
+                favoriteIDs.add(cursor.getLong(0));
             }
+            return favoriteIDs;
+        }
+    }
+
+    private static LongList getQueueIDListInternal(PodDBAdapter adapter) {
+        try (Cursor cursor = adapter.getQueueIDCursor()) {
+            LongList queueIDs = new LongList(cursor.getCount());
+            while (cursor.moveToNext()) {
+                queueIDs.add(cursor.getLong(0));
+            }
+            return queueIDs;
         }
     }
 
     /**
-     * Takes a list of FeedItems and loads their corresponding Feed-objects from the database.
-     * The feedID-attribute of a FeedItem must be set to the ID of its feed or the method will
+     * Takes a list of FeedItems and loads their corresponding Feed-objects from the
+     * database.
+     * The feedID-attribute of a FeedItem must be set to the ID of its feed or the
+     * method will
      * not find the correct feed of an item.
      *
      * @param items The FeedItems whose Feed-objects should be loaded.
@@ -147,10 +177,11 @@ public final class DBReader {
      * This method should NOT be used if the FeedItems are not used.
      *
      * @param feed The Feed whose items should be loaded
-     * @return A list with the FeedItems of the Feed. The Feed-attribute of the FeedItems will already be set correctly.
+     * @return A list with the FeedItems of the Feed. The Feed-attribute of the
+     *         FeedItems will already be set correctly.
      */
     public static List<FeedItem> getFeedItemList(final Feed feed, final FeedItemFilter filter, SortOrder sortOrder,
-                                                 int offset, int limit) {
+            int offset, int limit) {
         Log.d(TAG, "getFeedItemList() called with: " + "feed = [" + feed + "]");
 
         PodDBAdapter adapter = PodDBAdapter.getInstance();
@@ -178,7 +209,8 @@ public final class DBReader {
     }
 
     /**
-     * Loads the IDs of the FeedItems in the queue. This method should be preferred over
+     * Loads the IDs of the FeedItems in the queue. This method should be preferred
+     * over
      * {@link #getQueue()} if the FeedItems of the queue are not needed.
      *
      * @return A list of IDs sorted by the same order as the queue.
@@ -199,7 +231,8 @@ public final class DBReader {
     }
 
     /**
-     * Gets the remaining queue size, given a current item, including the current item.
+     * Gets the remaining queue size, given a current item, including the current
+     * item.
      * If the current item is not found it will return 0.
      */
     public static int getRemainingQueueSize(long existingId) {
@@ -216,7 +249,8 @@ public final class DBReader {
     }
 
     /**
-     * Loads a list of the FeedItems in the queue. If the FeedItems of the queue are not used directly, consider using
+     * Loads a list of the FeedItems in the queue. If the FeedItems of the queue are
+     * not used directly, consider using
      * {@link #getQueueIDList()} instead.
      *
      * @return A list of FeedItems sorted by the same order as the queue.
@@ -255,7 +289,7 @@ public final class DBReader {
     /**
      *
      * @param offset The first episode that should be loaded.
-     * @param limit The maximum number of episodes that should be loaded.
+     * @param limit  The maximum number of episodes that should be loaded.
      * @param filter The filter describing which episodes to filter out.
      */
     @NonNull
@@ -314,7 +348,8 @@ public final class DBReader {
      * Loads the download log from the database.
      *
      * @return A list with DownloadStatus objects that represent the download log.
-     * The size of the returned list is limited by {@link #DOWNLOAD_LOG_SIZE}.
+     *         The size of the returned list is limited by
+     *         {@link #DOWNLOAD_LOG_SIZE}.
      */
     public static List<DownloadResult> getDownloadLog() {
         Log.d(TAG, "getDownloadLog() called");
@@ -336,8 +371,9 @@ public final class DBReader {
      * Loads the download log for a particular feed from the database.
      *
      * @param feedId Feed id for which the download log is loaded
-     * @return A list with DownloadStatus objects that represent the feed's download log,
-     * newest events first.
+     * @return A list with DownloadStatus objects that represent the feed's download
+     *         log,
+     *         newest events first.
      */
     public static List<DownloadResult> getFeedDownloadLog(long feedId, long limit) {
         Log.d(TAG, "getFeedDownloadLog() called with: " + "feed = [" + feedId + "]");
@@ -359,9 +395,11 @@ public final class DBReader {
     /**
      * Loads a specific Feed from the database.
      *
-     * @param feedId The ID of the Feed
-     * @param filtered <code>true</code> if only the visible items should be loaded according to the feed filter.
-     * @return The Feed or null if the Feed could not be found. The Feeds FeedItems will also be loaded from the
+     * @param feedId   The ID of the Feed
+     * @param filtered <code>true</code> if only the visible items should be loaded
+     *                 according to the feed filter.
+     * @return The Feed or null if the Feed could not be found. The Feeds FeedItems
+     *         will also be loaded from the
      *         database and the items-attribute will be set correctly.
      */
     @Nullable
@@ -374,7 +412,8 @@ public final class DBReader {
             if (cursor.moveToNext()) {
                 feed = cursor.getFeed();
                 FeedItemFilter filter = (filtered && feed.getItemFilter() != null)
-                        ? feed.getItemFilter() : FeedItemFilter.unfiltered();
+                        ? feed.getItemFilter()
+                        : FeedItemFilter.unfiltered();
                 filter = new FeedItemFilter(filter, FeedItemFilter.INCLUDE_NOT_SUBSCRIBED);
                 List<FeedItem> items = getFeedItemList(feed, filter, feed.getSortOrder(), offset, limit);
                 for (FeedItem item : items) {
@@ -392,8 +431,10 @@ public final class DBReader {
     }
 
     /**
-     * Loads a specific FeedItem from the database. This method should not be used for loading more
-     * than one FeedItem because this method might query the database several times for each item.
+     * Loads a specific FeedItem from the database. This method should not be used
+     * for loading more
+     * than one FeedItem because this method might query the database several times
+     * for each item.
      *
      * @param itemId The ID of the FeedItem
      * @return The FeedItem or null if the FeedItem could not be found.
@@ -421,7 +462,8 @@ public final class DBReader {
      * Get next feed item in queue following a particular feeditem
      *
      * @param item The FeedItem
-     * @return The FeedItem next in queue or null if the FeedItem could not be found.
+     * @return The FeedItem next in queue or null if the FeedItem could not be
+     *         found.
      */
     @Nullable
     public static FeedItem getNextInQueue(FeedItem item) {
@@ -459,10 +501,10 @@ public final class DBReader {
     /**
      * Loads a specific FeedItem from the database.
      *
-     * @param guid feed item guid
+     * @param guid       feed item guid
      * @param episodeUrl the feed item's url
      * @return The FeedItem or null if the FeedItem could not be found.
-     *          Does NOT load additional attributes like feed or queue state.
+     *         Does NOT load additional attributes like feed or queue state.
      */
     public static FeedItem getFeedItemByGuidOrEpisodeUrl(final String guid, final String episodeUrl) {
         PodDBAdapter adapter = PodDBAdapter.getInstance();
@@ -499,8 +541,10 @@ public final class DBReader {
     }
 
     /**
-     * Loads the list of chapters that belongs to this FeedItem if available. This method overwrites
-     * any chapters that this FeedItem has. If no chapters were found in the database, the chapters
+     * Loads the list of chapters that belongs to this FeedItem if available. This
+     * method overwrites
+     * any chapters that this FeedItem has. If no chapters were found in the
+     * database, the chapters
      * reference of the FeedItem will be set to null.
      *
      * @param item The FeedItem
@@ -624,7 +668,7 @@ public final class DBReader {
      */
     @NonNull
     public static StatisticsResult getStatistics(boolean includeMarkedAsPlayed,
-                                                 long timeFilterFrom, long timeFilterTo) {
+            long timeFilterFrom, long timeFilterTo) {
         PodDBAdapter adapter = PodDBAdapter.getInstance();
         adapter.open();
 
@@ -678,12 +722,13 @@ public final class DBReader {
 
     /**
      * Returns data necessary for displaying the navigation drawer. This includes
-     * the list of subscriptions, the number of items in the queue and the number of unread
+     * the list of subscriptions, the number of items in the queue and the number of
+     * unread
      * items.
      */
     @NonNull
     public static NavDrawerData getNavDrawerData(@Nullable SubscriptionsFilter subscriptionsFilter,
-                                                 FeedOrder feedOrder, FeedCounter feedCounter, int feedState) {
+            FeedOrder feedOrder, FeedCounter feedCounter, int feedState) {
         PodDBAdapter adapter = PodDBAdapter.getInstance();
         adapter.open();
 
